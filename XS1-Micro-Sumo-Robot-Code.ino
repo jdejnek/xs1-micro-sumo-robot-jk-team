@@ -17,10 +17,10 @@
 #define Line_Sensor     A3
 
 // user buttons and LEDs
-#define Front_Button    8
-#define Back_Button     12
-#define Led1            4
-#define Led2            6
+#define Front_Button 8
+#define Back_Button  12
+#define Led1         4
+#define Led2         6
 
 // motor control pins
 #define Right_Motor_Direction 10
@@ -84,8 +84,8 @@ void setup() {
 /////////////////////////////////
 void loop() {
   // while waiting for a start button push
-  while(digitalRead(Front_Button) == 1 && digitalRead(Back_Button) == 1) {
-    // sensor calidation routine, you can see the values of the sensors in the serial monitor 
+  while (digitalRead(Front_Button) == 1 && digitalRead(Back_Button) == 1) {
+    // sensor calidation routine, you can see the values of the sensors in the serial monitor
     // to understand how they work and what values they give when they see something
     Serial.print("Line_Sensor:");
     Serial.print(analogRead(Line_Sensor));
@@ -148,14 +148,16 @@ void loop() {
       Last_Value = 2;
     }
     // No sensor data: act based on last seen direction
-    else if (Last_Value == 0) Motor(-Speed2, Speed2);
-    else if (Last_Value == 1) Motor(Speed2, Speed2);
-    else if (Last_Value == 2) Motor(Speed2, -Speed2);
+    else if (Last_Value == 0)
+      Motor(-Speed2, Speed2);
+    else if (Last_Value == 1)
+      Motor(Speed2, Speed2);
+    else if (Last_Value == 2)
+      Motor(Speed2, -Speed2);
   }
 
   // in case button is pressed during match, stop and wait
   delay(100);
-  while (digitalRead(Front_Button) == 0 || digitalRead(Back_Button) == 0)
-    ;
+  while (digitalRead(Front_Button) == 0 || digitalRead(Back_Button) == 0);
   delay(100);
 }
