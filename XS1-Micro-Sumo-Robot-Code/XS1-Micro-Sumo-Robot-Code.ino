@@ -187,7 +187,11 @@ void flip() {
   delay(kFlipBackwardDelayMs);
   setMotors(0, 0);
   delay(100);
+  setMotors(30, 30);
+  delay(100);
   setMotors(60, 60);
+  delay(100);
+  setMotors(100, 100);
   delay(100);
 }
 
