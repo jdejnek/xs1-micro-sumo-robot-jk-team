@@ -230,9 +230,10 @@ void actOnLastDirection() {
 void loop() {
   waitForStart();
 
-  // depending on which button was pressed, set preferred turning direction
-  if (digitalRead(Front_Button) == 0) lastDirection = DIR_RIGHT;
-  if (digitalRead(Back_Button) == 0) lastDirection = DIR_LEFT;
+  // TODO: defense or offense mode
+  // if (digitalRead(Front_Button) == 0) lastDirection = DIR_RIGHT;
+  // if (digitalRead(Back_Button) == 0) lastDirection = DIR_LEFT;
+  lastDirection = DIR_FRONT;
 
   // pre-match LED countdown
   preMatchBlink();
