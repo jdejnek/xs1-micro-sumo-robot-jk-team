@@ -174,6 +174,7 @@ bool handleLineSensor() {
   int lineVal = analogRead(Line_Sensor);
 
   if (lineVal >= kLineHighThreshold) {
+    doSideRoutine = false;
     delay(kDebounceDelayMs);
     if (analogRead(Line_Sensor) >= kLineHighThreshold) {
       flip();
@@ -182,6 +183,7 @@ bool handleLineSensor() {
   }
 
   if (lineVal < kLineThreshold) {
+    doSideRoutine = false;
     delay(kDebounceDelayMs);
     if (analogRead(Line_Sensor) < kLineThreshold) {
       setMotors(-baseSpeed, -baseSpeed);
