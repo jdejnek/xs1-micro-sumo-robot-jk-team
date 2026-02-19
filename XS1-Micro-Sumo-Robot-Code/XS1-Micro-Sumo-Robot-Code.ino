@@ -322,7 +322,8 @@ void loop() {
   while (digitalRead(Front_Button) == 1 && digitalRead(Back_Button) == 1) {
     // Stop if nothing detected for 5 seconds
     if (millis() - lastSeenTime > kInactivityTimeoutMs) {
-      break; 
+      stopMotors();
+      continue;
     }
 
     // Line handling has highest priority
