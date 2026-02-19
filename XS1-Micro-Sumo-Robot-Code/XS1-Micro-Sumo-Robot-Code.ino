@@ -68,6 +68,7 @@ bool processOpponentSensors();
 void actOnLastDirection();
 void setLeds(bool led1On, bool led2On);
 void flip();
+void sideRoutine(Direction dir);
 
 // Set motor outputs. Note: keeps original mapping (LeftMotorValue maps to right motor pins)
 void setMotors(int LeftMotorValue, int RightMotorValue) {
@@ -208,12 +209,12 @@ bool processOpponentSensors() {
   attackSpeed = baseSpeed;  // reset ramp when opponent is no longer in front
   if (digitalRead(Left_Op_Sensor) == 1 && digitalRead(Right_Op_Sensor) == 0) {
     doSideRoutine = true;
-    sideRoutine(DIR_LEFT)
+    sideRoutine(DIR_LEFT);
     return true;
   }
   if (digitalRead(Left_Op_Sensor) == 0 && digitalRead(Right_Op_Sensor) == 1) {
     doSideRoutine = true;
-    sideRoutine(DIR_RIGHT)
+    sideRoutine(DIR_RIGHT);
     return true;
   }
   return false;
@@ -228,19 +229,19 @@ void actOnLastDirection() {
     setMotors(baseSpeed, -baseSpeed);
 }
 
-void sideRoutine(enum Direction) {
+void sideRoutine(Direction dir) {
   if (sideCountdown > 0) {
-    setMotors(baseSpeed, baseSpeed)
+    setMotors(baseSpeed, baseSpeed);
     sideCountdown = sideCountdown -1;
     return;
   }
   doSideRoutine = false;
 
-  if (Direction == DIR_LEFT) {
+  if (dir == DIR_LEFT) {
     setMotors(-baseSpeed, baseSpeed);
     lastDirection = DIR_LEFT;
   }
-  if (Direction == DIR_RIGHT) {
+  if (dir == DIR_RIGHT) {
     setMotors(baseSpeed, -baseSpeed);
     lastDirection = DIR_RIGHT;
   }
