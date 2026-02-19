@@ -31,7 +31,7 @@
 const int kMaxSpeed        = 255;
 const int kDefaultSpeed    = 125;
 const int kLineThreshold   = 500;
-const int kDebounceDelayMs = 15;
+const int kDebounceDelayMs = 2;
 const int kRetreatDelayMs  = 100;
 const int kTurnDelayMs     = 100;
 const int kLedBlinkCount   = 10;
