@@ -30,10 +30,13 @@
 // Configuration constants
 const int kMaxSpeed        = 255;
 const int kDefaultSpeed    = 125;
-const int kLineThreshold   = 500;
-const int kDebounceDelayMs = 2;
-const int kRetreatDelayMs  = 100;
-const int kTurnDelayMs     = 100;
+const int kLineThreshold     = 500;
+const int kLineHighThreshold = 1000;
+const int kDebounceDelayMs   = 2;
+const int kRetreatDelayMs    = 100;
+const int kTurnDelayMs       = 100;
+const int kFlipForwardDelayMs  = 300;
+const int kFlipBackwardDelayMs = 200;
 const int kLedBlinkCount   = 10;
 const int kLedBlinkDelayMs = 500;
 
@@ -60,6 +63,7 @@ bool handleLineSensor();
 bool processOpponentSensors();
 void actOnLastDirection();
 void setLeds(bool led1On, bool led2On);
+void flip();
 
 // Set motor outputs. Note: keeps original mapping (LeftMotorValue maps to right motor pins)
 void setMotors(int LeftMotorValue, int RightMotorValue) {
@@ -152,9 +156,27 @@ void preMatchBlink() {
   }
 }
 
+// Short forward at defaultSpeed then full-speed backward — used when line reads >= kLineHighThreshold
+void flip() {
+  setMotors(kMaxSpeed, kMaxSpeed);
+  delay(kFlipForwardDelayMs);
+  setMotors(-kDefaultSpeed, -kDefaultSpeed);
+  delay(kFlipBackwardDelayMs);
+}
+
 // Handle line sensor reading; returns true if line was detected and handled
 bool handleLineSensor() {
-  if (analogRead(Line_Sensor) < kLineThreshold) {
+  int lineVal = analogRead(Line_Sensor);
+
+  if (lineVal >= kLineHighThreshold) {
+    delay(kDebounceDelayMs);
+    if (analogRead(Line_Sensor) >= kLineHighThreshold) {
+      flip();
+      return true;
+    }
+  }
+
+  if (lineVal < kLineThreshold) {
     delay(kDebounceDelayMs);
     if (analogRead(Line_Sensor) < kLineThreshold) {
       setMotors(-baseSpeed, -baseSpeed);
