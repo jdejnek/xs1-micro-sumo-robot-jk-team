@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-PORT=$(arduino-cli board list | grep "usbmodem\|usbserial" | awk '{print $1}')
+PORT=$(arduino-cli board list | grep "usbmodem\|usbserial" | head -n 1 | awk '{print $1}')
 
 if [ -z "$PORT" ]; then
-  echo "Error: No Arduino board detected. Is it plugged in?"
+  echo "Error: No Arduino board detected (expected usbmodem or usbserial). Is it plugged in?"
   exit 1
 fi
 

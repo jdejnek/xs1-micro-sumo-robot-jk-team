@@ -28,28 +28,16 @@
 #define Left_Motor_Speed      5
 
 // Configuration constants
-const int kMaxSpeed        = 255;
-const int kDefaultSpeed    = 150;
-const int kLineThreshold     = 500;
-const int kLineHighThreshold = 1000;
-const int kDebounceDelayMs   = 10;
-const int kRetreatDelayMs    = 150;
-const int kTurnDelayMs       = 200;
-const int kFlipForwardDelayMs  = 300;
-const int kFlipBackwardDelayMs = 200;
-const int kAttackRampStep  = 1;
+const int kDefaultSpeed    = 200;
+const int kLineThreshold   = 45;
+const int kDebounceDelayMs = 15;
+const int kRetreatDelayMs  = 150;
+const int kTurnDelayMs     = 200;
 const int kLedBlinkCount   = 10;
 const int kLedBlinkDelayMs = 500;
-const int kSearchTimeoutMs = 2000; // Time before doing a 180 search
-const int kInactivityTimeoutMs = 5000; // Time before stopping if nothing is detected
 
 // Current runtime settings (tweakable)
-int baseSpeed   = kDefaultSpeed;
-int attackSpeed = kDefaultSpeed;  // ramps up to kMaxSpeed while opponent is in front
-int sideCountdown = 100;
-bool doSideRoutine = false;
-unsigned long lastSeenTime = 0;   // Timestamp of last REAL opponent detection
-unsigned long lastSearchTime = 0; // Timestamp of last 180 search
+int baseSpeed = kDefaultSpeed;
 
 // stores last sensor direction seen: 0=left, 1=front, 2=right
 int lastDirection = 1;
@@ -59,7 +47,6 @@ enum Direction {
   DIR_LEFT  = 0,
   DIR_FRONT = 1,
   DIR_RIGHT = 2,
-  DIR_BACK  = 3
 };
 
 // Forward declarations
@@ -72,8 +59,6 @@ bool handleLineSensor();
 bool processOpponentSensors();
 void actOnLastDirection();
 void setLeds(bool led1On, bool led2On);
-void flip();
-void sideRoutine(Direction dir);
 
 // Set motor outputs. Note: keeps original mapping (LeftMotorValue maps to right motor pins)
 void setMotors(int LeftMotorValue, int RightMotorValue) {
@@ -141,24 +126,11 @@ void printSensorValues() {
   Serial.println();
 }
 
-// Wait for start signal (Sensor trigger because there are no physical buttons)
+// Wait for start button push while printing sensor values
 void waitForStart() {
-  bool started = false;
-  while (digitalRead(Front_Button) == 1 && digitalRead(Back_Button) == 1 && !started) {
+  while (digitalRead(Front_Button) == 1 && digitalRead(Back_Button) == 1) {
     printSensorValues();
     stopMotors();
-    
-    // Trigger start if any opponent sensor is blocked for 1 second
-    if (digitalRead(Front_Op_Sensor) == 1 || 
-        digitalRead(Left_Op_Sensor) == 1 || 
-        digitalRead(Right_Op_Sensor) == 1) {
-      delay(1000); 
-      if (digitalRead(Front_Op_Sensor) == 1 || 
-          digitalRead(Left_Op_Sensor) == 1 || 
-          digitalRead(Right_Op_Sensor) == 1) {
-        started = true;
-      }
-    }
   }
 }
 
@@ -179,47 +151,15 @@ void preMatchBlink() {
   }
 }
 
-void flip() {
-  setMotors(kMaxSpeed, kMaxSpeed);
-  delay(kFlipForwardDelayMs);
-  setMotors(-kDefaultSpeed, -kDefaultSpeed);
-  delay(kFlipBackwardDelayMs);
-  setMotors(0, 0);
-  delay(100);
-  setMotors(60, 60);
-  delay(100);
-}
-
 // Handle line sensor reading; returns true if line was detected and handled
 bool handleLineSensor() {
-  int lineVal = analogRead(Line_Sensor);
-
-  // High contrast/value detection: Used to right the robot if it falls on its back
-  if (lineVal >= kLineHighThreshold) {
-    doSideRoutine = false;
-    delay(kDebounceDelayMs);
-    if (analogRead(Line_Sensor) >= kLineHighThreshold) {
-      flip();
-      return true;
-    }
-  }
-
-  if (lineVal < kLineThreshold) {
-    doSideRoutine = false;
+  if (analogRead(Line_Sensor) < kLineThreshold) {
     delay(kDebounceDelayMs);
     if (analogRead(Line_Sensor) < kLineThreshold) {
-      // Emergency braking: Lock motors briefly to kill forward momentum
-      stopMotors();
-      delay(20); 
-      
-      // Aggressive retreat using kMaxSpeed instead of baseSpeed
-      setMotors(-kMaxSpeed, -kMaxSpeed);
+      setMotors(-baseSpeed, -baseSpeed);
       delay(kRetreatDelayMs);
-      
-      // Pivot away from the edge
-      setMotors(-kMaxSpeed, kMaxSpeed);
+      setMotors(-baseSpeed, baseSpeed);
       delay(kTurnDelayMs);
-      
       setMotors(baseSpeed, baseSpeed);
       return true;
     }
@@ -229,43 +169,21 @@ bool handleLineSensor() {
 
 // Process opponent sensors; returns true if any opponent sensor fired and action taken
 bool processOpponentSensors() {
-  bool detected = (digitalRead(Front_Op_Sensor) == 1 || 
-                   digitalRead(Left_Op_Sensor) == 1 || 
-                   digitalRead(Right_Op_Sensor) == 1);
-  
-  if (detected) {
-    lastSeenTime = millis();
-    lastSearchTime = millis();
-  }
-
   if (digitalRead(Front_Op_Sensor) == 1) {
-    attackSpeed = min(attackSpeed + kAttackRampStep, kMaxSpeed);
-    setMotors(attackSpeed, attackSpeed);
+    setMotors(baseSpeed, baseSpeed);
     lastDirection = DIR_FRONT;
     return true;
   }
-  attackSpeed = baseSpeed;  // reset ramp when opponent is no longer in front
-  
   if (digitalRead(Left_Op_Sensor) == 1 && digitalRead(Right_Op_Sensor) == 0) {
-    doSideRoutine = true;
+    setMotors(-baseSpeed, baseSpeed);
     lastDirection = DIR_LEFT;
-    sideRoutine(DIR_LEFT);
     return true;
   }
   if (digitalRead(Left_Op_Sensor) == 0 && digitalRead(Right_Op_Sensor) == 1) {
-    doSideRoutine = true;
+    setMotors(baseSpeed, -baseSpeed);
     lastDirection = DIR_RIGHT;
-    sideRoutine(DIR_RIGHT);
     return true;
   }
-
-  // Periodic Search: if nothing seen for a while, assume they are behind us
-  if (millis() - lastSearchTime > kSearchTimeoutMs) {
-    lastDirection = DIR_BACK;
-    lastSearchTime = millis(); // Reset search timer
-    return false; // Let actOnLastDirection handle the turn
-  }
-
   return false;
 }
 
@@ -276,31 +194,6 @@ void actOnLastDirection() {
     setMotors(baseSpeed, baseSpeed);
   else if (lastDirection == DIR_RIGHT)
     setMotors(baseSpeed, -baseSpeed);
-  else if (lastDirection == DIR_BACK)
-    setMotors(-baseSpeed, baseSpeed); // Spin to find them
-}
-
-void sideRoutine(enum Direction dir) {
-  if (sideCountdown > 0) {
-    setMotors(baseSpeed, baseSpeed);
-    sideCountdown = sideCountdown - 1;
-    return;
-  }
-  doSideRoutine = false;
-  sideCountdown = 100; // Reset for next time
-
-  if (dir == DIR_LEFT) {
-    setMotors(baseSpeed, -baseSpeed);
-    lastDirection = DIR_RIGHT;
-  }
-  if (dir == DIR_RIGHT) {
-    setMotors(-baseSpeed, baseSpeed);
-    lastDirection = DIR_LEFT;
-  }
-  if (dir == DIR_RIGHT) {
-    setMotors(baseSpeed, -baseSpeed);
-    lastDirection = DIR_RIGHT;
-  }
 }
 
 /////////////////////////////////
@@ -318,22 +211,10 @@ void loop() {
 
   // Move forward
   setMotors(baseSpeed, baseSpeed);
-  lastSeenTime = millis();
-  lastSearchTime = millis();
 
   while (digitalRead(Front_Button) == 1 && digitalRead(Back_Button) == 1) {
-    // Stop if nothing detected for 5 seconds
-    if (millis() - lastSeenTime > kInactivityTimeoutMs) {
-      break; 
-    }
-
     // Line handling has highest priority
     if (handleLineSensor()) continue;
-
-    if (doSideRoutine) {
-      sideRoutine(lastDirection);
-      continue;
-    }
 
     // Opponent sensors
     if (processOpponentSensors()) continue;
@@ -342,7 +223,7 @@ void loop() {
     actOnLastDirection();
   }
 
-  // in case button is pressed during match, or inactivity timeout reached, stop and wait
+  // in case button is pressed during match, stop and wait
   stopMotors();
   delay(100);
   while (digitalRead(Front_Button) == 0 || digitalRead(Back_Button) == 0);
