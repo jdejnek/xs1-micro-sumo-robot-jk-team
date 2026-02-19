@@ -46,7 +46,7 @@ const int kInactivityTimeoutMs = 5000; // Time before stopping if nothing is det
 // Current runtime settings (tweakable)
 int baseSpeed   = kDefaultSpeed;
 int attackSpeed = kDefaultSpeed;  // ramps up to kMaxSpeed while opponent is in front
-int sideCountdown = 100;
+int sideCountdown = 200;
 bool doSideRoutine = false;
 unsigned long lastSeenTime = 0;   // Timestamp of last REAL opponent detection
 unsigned long lastSearchTime = 0; // Timestamp of last 180 search
@@ -73,6 +73,7 @@ bool processOpponentSensors();
 void actOnLastDirection();
 void setLeds(bool led1On, bool led2On);
 void flip();
+void sideRoutine(Direction dir);
 
 // Set motor outputs. Note: keeps original mapping (LeftMotorValue maps to right motor pins)
 void setMotors(int LeftMotorValue, int RightMotorValue) {
@@ -184,7 +185,9 @@ void flip() {
   setMotors(-kDefaultSpeed, -kDefaultSpeed);
   delay(kFlipBackwardDelayMs);
   setMotors(0, 0);
-  delay(kFlipForwardDelayMs);
+  delay(100);
+  setMotors(60, 60);
+  delay(100);
 }
 
 // Handle line sensor reading; returns true if line was detected and handled
