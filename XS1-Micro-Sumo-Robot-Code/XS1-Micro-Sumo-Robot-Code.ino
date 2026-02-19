@@ -320,12 +320,6 @@ void loop() {
   lastSearchTime = millis();
 
   while (digitalRead(Front_Button) == 1 && digitalRead(Back_Button) == 1) {
-    // Stop if nothing detected for 5 seconds
-    if (millis() - lastSeenTime > kInactivityTimeoutMs) {
-      stopMotors();
-      continue;
-    }
-
     // Line handling has highest priority
     if (handleLineSensor()) continue;
 
@@ -336,6 +330,12 @@ void loop() {
 
     // Opponent sensors
     if (processOpponentSensors()) continue;
+
+    // Stop if nothing detected for 5 seconds
+    if (millis() - lastSeenTime > kInactivityTimeoutMs) {
+      stopMotors();
+      continue;
+    }
 
     // Otherwise act on last remembered direction
     actOnLastDirection();
