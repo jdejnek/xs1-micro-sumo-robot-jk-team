@@ -167,7 +167,9 @@ void flip() {
   setMotors(-kDefaultSpeed, -kDefaultSpeed);
   delay(kFlipBackwardDelayMs);
   setMotors(0, 0);
-  delay(kFlipForwardDelayMs);
+  delay(100);
+  setMotors(60, 60);
+  delay(100);
 }
 
 // Handle line sensor reading; returns true if line was detected and handled
