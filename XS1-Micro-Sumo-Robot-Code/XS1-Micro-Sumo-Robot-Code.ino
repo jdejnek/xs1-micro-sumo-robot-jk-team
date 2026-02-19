@@ -28,8 +28,9 @@
 #define Left_Motor_Speed      5
 
 // Configuration constants
+const int kMaxSpeed        = 255;
 const int kDefaultSpeed    = 200;
-const int kLineThreshold   = 45;
+const int kLineThreshold   = 500;
 const int kDebounceDelayMs = 15;
 const int kRetreatDelayMs  = 100;
 const int kTurnDelayMs     = 100;
@@ -170,7 +171,7 @@ bool handleLineSensor() {
 // Process opponent sensors; returns true if any opponent sensor fired and action taken
 bool processOpponentSensors() {
   if (digitalRead(Front_Op_Sensor) == 1) {
-    setMotors(baseSpeed, baseSpeed);
+    setMotors(kMaxSpeed, kMaxSpeed);
     lastDirection = DIR_FRONT;
     return true;
   }
