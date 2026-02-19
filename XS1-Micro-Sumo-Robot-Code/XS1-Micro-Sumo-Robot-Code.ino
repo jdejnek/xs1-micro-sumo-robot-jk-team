@@ -237,12 +237,12 @@ void sideRoutine(enum Direction) {
   doSideRoutine = false;
 
   if (Direction == DIR_LEFT) {
-    setMotors(baseSpeed, -baseSpeed);
-    lastDirection = DIR_RIGHT;
-  }
-  if (Direction == DIR_RIGHT) {
     setMotors(-baseSpeed, baseSpeed);
     lastDirection = DIR_LEFT;
+  }
+  if (Direction == DIR_RIGHT) {
+    setMotors(baseSpeed, -baseSpeed);
+    lastDirection = DIR_RIGHT;
   }
 }
 
