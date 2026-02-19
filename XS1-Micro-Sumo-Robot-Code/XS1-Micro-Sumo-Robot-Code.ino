@@ -37,11 +37,13 @@ const int kRetreatDelayMs    = 100;
 const int kTurnDelayMs       = 100;
 const int kFlipForwardDelayMs  = 300;
 const int kFlipBackwardDelayMs = 200;
+const int kAttackRampStep  = 1;
 const int kLedBlinkCount   = 10;
 const int kLedBlinkDelayMs = 500;
 
 // Current runtime settings (tweakable)
-int baseSpeed = kDefaultSpeed;
+int baseSpeed   = kDefaultSpeed;
+int attackSpeed = kDefaultSpeed;  // ramps up to kMaxSpeed while opponent is in front
 
 // stores last sensor direction seen: 0=left, 1=front, 2=right
 int lastDirection = 1;
@@ -156,12 +158,13 @@ void preMatchBlink() {
   }
 }
 
-// Short forward at defaultSpeed then full-speed backward — used when line reads >= kLineHighThreshold
 void flip() {
   setMotors(kMaxSpeed, kMaxSpeed);
   delay(kFlipForwardDelayMs);
   setMotors(-kDefaultSpeed, -kDefaultSpeed);
   delay(kFlipBackwardDelayMs);
+  setMotors(0, 0);
+  delay(kFlipForwardDelayMs);
 }
 
 // Handle line sensor reading; returns true if line was detected and handled
@@ -193,10 +196,12 @@ bool handleLineSensor() {
 // Process opponent sensors; returns true if any opponent sensor fired and action taken
 bool processOpponentSensors() {
   if (digitalRead(Front_Op_Sensor) == 1) {
-    setMotors(kMaxSpeed, kMaxSpeed);
+    attackSpeed = min(attackSpeed + kAttackRampStep, kMaxSpeed);
+    setMotors(attackSpeed, attackSpeed);
     lastDirection = DIR_FRONT;
     return true;
   }
+  attackSpeed = baseSpeed;  // reset ramp when opponent is no longer in front
   if (digitalRead(Left_Op_Sensor) == 1 && digitalRead(Right_Op_Sensor) == 0) {
     setMotors(-baseSpeed, baseSpeed);
     lastDirection = DIR_LEFT;
