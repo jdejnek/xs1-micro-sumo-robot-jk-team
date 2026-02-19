@@ -44,6 +44,8 @@ const int kLedBlinkDelayMs = 500;
 // Current runtime settings (tweakable)
 int baseSpeed   = kDefaultSpeed;
 int attackSpeed = kDefaultSpeed;  // ramps up to kMaxSpeed while opponent is in front
+int sideCountdown = 100;
+bool sideRoutine = false;
 
 // stores last sensor direction seen: 0=left, 1=front, 2=right
 int lastDirection = 1;
@@ -203,13 +205,11 @@ bool processOpponentSensors() {
   }
   attackSpeed = baseSpeed;  // reset ramp when opponent is no longer in front
   if (digitalRead(Left_Op_Sensor) == 1 && digitalRead(Right_Op_Sensor) == 0) {
-    setMotors(-baseSpeed, baseSpeed);
-    lastDirection = DIR_LEFT;
+    sideRoutine(DIR_LEFT)
     return true;
   }
   if (digitalRead(Left_Op_Sensor) == 0 && digitalRead(Right_Op_Sensor) == 1) {
-    setMotors(baseSpeed, -baseSpeed);
-    lastDirection = DIR_RIGHT;
+    sideRoutine(DIR_RIGHT)
     return true;
   }
   return false;
@@ -222,6 +222,23 @@ void actOnLastDirection() {
     setMotors(baseSpeed, baseSpeed);
   else if (lastDirection == DIR_RIGHT)
     setMotors(baseSpeed, -baseSpeed);
+}
+
+void sideRoutine(enum Direction) {
+  if (sideCountdown > 0) {
+    setMotors(baseSpeed, baseSpeed)
+    sideCountdown = sideCountdown -1;
+    return;
+  }
+
+  if (Direction == DIR_LEFT) {
+    setMotors(baseSpeed, -baseSpeed);
+    lastDirection = DIR_RIGHT;
+  }
+  if (Direction == DIR_RIGHT) {
+    setMotors(-baseSpeed, baseSpeed);
+    lastDirection = DIR_LEFT;
+  }
 }
 
 /////////////////////////////////
