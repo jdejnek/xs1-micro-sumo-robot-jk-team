@@ -29,7 +29,7 @@
 
 // Configuration constants
 const int kMaxSpeed        = 255;
-const int kDefaultSpeed    = 200;
+const int kDefaultSpeed    = 125;
 const int kLineThreshold   = 500;
 const int kDebounceDelayMs = 15;
 const int kRetreatDelayMs  = 100;
