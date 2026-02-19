@@ -42,11 +42,12 @@ const int kLedBlinkCount   = 10;
 const int kLedBlinkDelayMs = 500;
 const int kSearchTimeoutMs = 2000; // Time before doing a 180 search
 const int kInactivityTimeoutMs = 5000; // Time before stopping if nothing is detected
+const int defaultSideCountdown = 200;
 
 // Current runtime settings (tweakable)
 int baseSpeed   = kDefaultSpeed;
 int attackSpeed = kDefaultSpeed;  // ramps up to kMaxSpeed while opponent is in front
-int sideCountdown = 200;
+int sideCountdown = defaultSideCountdown;
 bool doSideRoutine = false;
 unsigned long lastSeenTime = 0;   // Timestamp of last REAL opponent detection
 unsigned long lastSearchTime = 0; // Timestamp of last 180 search
@@ -287,15 +288,15 @@ void sideRoutine(enum Direction dir) {
     return;
   }
   doSideRoutine = false;
-  sideCountdown = 100; // Reset for next time
+  sideCountdown = defaultSideCountdown; // Reset for next time
 
   if (dir == DIR_LEFT) {
-    setMotors(baseSpeed, -baseSpeed);
-    lastDirection = DIR_RIGHT;
-  }
-  if (dir == DIR_RIGHT) {
     setMotors(-baseSpeed, baseSpeed);
     lastDirection = DIR_LEFT;
+  }
+  if (dir == DIR_RIGHT) {
+    setMotors(baseSpeed, -baseSpeed);
+    lastDirection = DIR_RIGHT;
   }
 }
 
